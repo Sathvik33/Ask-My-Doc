@@ -1,0 +1,8 @@
+torch
+transformers
+streamlit
+pdf2image
+pillow
+python-docx
+python-pptx
+PyMuPDF
