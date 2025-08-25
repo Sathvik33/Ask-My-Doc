@@ -9,10 +9,9 @@ import numpy as np
 import torch
 import os
 
-# Load embedding model
+
 embedder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
-# Load FLAN-T5 directly with device check
 model_name = "google/flan-t5-large"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -23,7 +22,6 @@ qa_pipeline = pipeline(
     device=0 if torch.cuda.is_available() else -1
 )
 
-# -------- File Readers -------- #
 def read_pdf(file):
     reader = PdfReader(file)
     text = ""
@@ -46,7 +44,6 @@ def read_pptx(file):
                 text += shape.text + "\n"
     return text
 
-# -------- FAISS Index -------- #
 def create_index(text, chunk_size=500):
     chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
     embeddings = embedder.encode(chunks, convert_to_numpy=True)
@@ -55,7 +52,6 @@ def create_index(text, chunk_size=500):
     index.add(embeddings)
     return index, chunks
 
-# -------- Query Function -------- #
 def query_index(question, index, chunks, top_k=3):
     q_emb = embedder.encode([question], convert_to_numpy=True)
     D, I = index.search(q_emb, top_k)
@@ -73,8 +69,7 @@ def query_index(question, index, chunks, top_k=3):
     answer = qa_pipeline(prompt, max_length=256)[0]['generated_text']
     return answer
 
-# -------- Streamlit UI -------- #
-st.title("📄 File Q&A Bot (PDF / Word / PPT)")
+st.title("Q&A Bot")
 
 file = st.file_uploader("Upload a file", type=["pdf", "docx", "pptx"])
 
@@ -89,12 +84,12 @@ if file:
         elif ext == ".pptx":
             text = read_pptx(file)
         else:
-            st.error("❌ Unsupported file format")
+            st.error(" Unsupported file format")
             st.stop()
 
         index, chunks = create_index(text)
 
-    st.success(f"✅ {file.name} processed! Ask me anything about it below.")
+    st.success(f"{file.name} processed! Ask me anything about it below.")
 
     question = st.text_input("Enter your question:")
 
@@ -103,3 +98,4 @@ if file:
             answer = query_index(question, index, chunks)
         st.subheader("Answer:")
         st.write(answer)
+
