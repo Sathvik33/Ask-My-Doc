@@ -7,3 +7,4 @@ python-docx
 python-pptx
 PyMuPDF
 PyPDF2
+sentence-transformers
